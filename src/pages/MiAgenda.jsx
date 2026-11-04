@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { api } from "../api";
+import ConsultaForm from "../components/ConsultaForm";
 import Shell from "../components/Shell";
 import { useToast } from "../components/toast";
 
@@ -12,6 +13,8 @@ export default function MiAgenda() {
     const toast = useToast();
     const [historial, setHistorial] = useState(false);
     const [citas, setCitas] = useState(null); // null = cargando
+    const [intento, setIntento] = useState(0);
+    const [abierta, setAbierta] = useState(null); // cita con el formulario abierto
 
     useEffect(() => {
         let activo = true;
@@ -25,11 +28,18 @@ export default function MiAgenda() {
         return () => {
             activo = false;
         };
-    }, [historial, toast]);
+    }, [historial, intento, toast]);
 
     function cambiar(valor) {
         setHistorial(valor);
+        setAbierta(null);
         setCitas(null);
+    }
+
+    function consultaGuardada() {
+        setAbierta(null);
+        setCitas(null);
+        setIntento((n) => n + 1);
     }
 
     return (
@@ -51,18 +61,19 @@ export default function MiAgenda() {
                             <th scope="col" className="plain-th">Fecha y hora</th>
                             <th scope="col" className="plain-th">Paciente</th>
                             <th scope="col" className="plain-th">Estado</th>
+                            <th scope="col" className="plain-th"><span className="sr-only">Acciones</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         {citas === null &&
                             Array.from({ length: 4 }, (_, i) => (
                                 <tr key={i}>
-                                    {[45, 55, 30].map((w, j) => <td key={j}><span className="skeleton" style={{ width: `${w}%` }} /></td>)}
+                                    {[45, 55, 30, 20].map((w, j) => <td key={j}><span className="skeleton" style={{ width: `${w}%` }} /></td>)}
                                 </tr>
                             ))}
                         {citas && citas.length === 0 && (
                             <tr>
-                                <td colSpan={3}>
+                                <td colSpan={4}>
                                     <div className="state">
                                         <strong>{historial ? "Sin citas registradas" : "No tienes citas próximas"}</strong>
                                         <span>Cuando un paciente reserve contigo aparecerá aquí.</span>
@@ -71,11 +82,31 @@ export default function MiAgenda() {
                             </tr>
                         )}
                         {citas && citas.map((c) => (
-                            <tr key={c.idCita}>
-                                <td className="cell-name">{fmtFecha.format(new Date(c.inicio))}</td>
-                                <td>{c.paciente}<span className="cell-sub"> · {c.documento}</span></td>
-                                <td><span className={`badge badge-${c.estado.toLowerCase()}`}>{c.estado}</span></td>
-                            </tr>
+                            <Fragment key={c.idCita}>
+                                <tr>
+                                    <td className="cell-name">{fmtFecha.format(new Date(c.inicio))}</td>
+                                    <td>
+                                        {c.paciente}<span className="cell-sub"> · {c.documento}</span>
+                                        {c.diagnostico && <span className="motivo"><strong>Diagnóstico:</strong> {c.diagnostico}</span>}
+                                        {c.notas && <span className="motivo">{c.notas}</span>}
+                                    </td>
+                                    <td><span className={`badge badge-${c.estado.toLowerCase()}`}>{c.estado}</span></td>
+                                    <td className="cell-actions">
+                                        {c.estado === "PROGRAMADA" && abierta !== c.idCita && (
+                                            <button type="button" className="link-btn" onClick={() => setAbierta(c.idCita)}>
+                                                Registrar consulta
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                                {abierta === c.idCita && (
+                                    <tr className="row-form">
+                                        <td colSpan={4}>
+                                            <ConsultaForm idCita={c.idCita} onDone={consultaGuardada} onCancel={() => setAbierta(null)} />
+                                        </td>
+                                    </tr>
+                                )}
+                            </Fragment>
                         ))}
                     </tbody>
                 </table>

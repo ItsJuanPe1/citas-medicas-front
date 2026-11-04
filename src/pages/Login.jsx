@@ -7,6 +7,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [verClave, setVerClave] = useState(false);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
 
@@ -44,13 +45,28 @@ export default function Login() {
 
         <div className="field">
           <label htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="pass-wrap">
+            <input
+              id="password"
+              type={verClave ? "text" : "password"}
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="pass-toggle"
+              onClick={() => setVerClave((v) => !v)}
+              aria-label={verClave ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-pressed={verClave}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                <circle cx="12" cy="12" r="3" />
+                {verClave && <path d="M4 4l16 16" />}
+              </svg>
+            </button>
+          </div>
         </div>
 
         {error && <p className="alert" role="alert">{error}</p>}

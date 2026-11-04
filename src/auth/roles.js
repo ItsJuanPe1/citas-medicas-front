@@ -4,6 +4,8 @@ export const ADMIN_CITAS = ["SUPERADMIN", "GERENTE"];
 export const AUDITORIA = ["SUPERADMIN"];
 export const VER_MEDICOS = ["SUPERADMIN", "GERENTE", "RECEPCIONISTA"];
 export const AGENDA_MEDICO = ["MEDICO"];
+export const REGISTRAR_CONSULTA = ["MEDICO", "SUPERADMIN"]; // HU03
+export const HORARIO = ["MEDICO", "SUPERADMIN"]; // medico define sus franjas
 // export const MEDICAMENTOS = ["MEDICO", "FARMACEUTICO", "SUPERADMIN"]; // HU05, HU06
 
 // Pantalla a la que llega cada rol al iniciar sesion. Cada HU nueva ajusta la de su rol.

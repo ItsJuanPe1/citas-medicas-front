@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, inicioDe } from "../auth/roles";
+import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, inicioDe } from "../auth/roles";
 
 const ROLES = {
   SUPERADMIN: "Superadmin",
@@ -15,6 +15,7 @@ const ROLES = {
 const ENLACES = [
   { to: "/inicio", label: "Inicio", roles: ["FARMACEUTICO"] },
   { to: "/medico/agenda", label: "Mi agenda", roles: AGENDA_MEDICO },
+  { to: "/medico/horario", label: "Horarios", roles: HORARIO },
   { to: "/medicos", label: "Médicos", roles: VER_MEDICOS },
   { to: "/citas/nueva", label: "Reservar cita", roles: GESTION_CITAS },
   { to: "/citas", label: "Citas", roles: GESTION_CITAS },
@@ -40,10 +41,10 @@ export default function Shell({ children }) {
           </nav>
         </div>
         <div className="session">
-          <span className="who">
+          <Link to="/perfil" className="who" title="Mi perfil">
             <strong>{user.username}</strong>
             <span className="role">{ROLES[user.rol] ?? user.rol}</span>
-          </span>
+          </Link>
           <button type="button" className="btn btn-quiet" onClick={logout}>
             Cerrar sesión
           </button>

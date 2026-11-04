@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/AuthContext";
-import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, inicioDe } from "./auth/roles";
+import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, inicioDe } from "./auth/roles";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import ReservarCita from "./pages/ReservarCita";
@@ -10,6 +10,8 @@ import TodasCitas from "./pages/TodasCitas";
 import Auditoria from "./pages/Auditoria";
 import Inicio from "./pages/Inicio";
 import MiAgenda from "./pages/MiAgenda";
+import Horario from "./pages/Horario";
+import Perfil from "./pages/Perfil";
 
 // "/" lleva a cada rol a su pantalla principal
 function RedirigirInicio() {
@@ -25,6 +27,8 @@ export default function App() {
       <Route path="/inicio" element={<ProtectedRoute><Inicio /></ProtectedRoute>} />
       <Route path="/medicos" element={<ProtectedRoute roles={VER_MEDICOS}><Home /></ProtectedRoute>} />
       <Route path="/medico/agenda" element={<ProtectedRoute roles={AGENDA_MEDICO}><MiAgenda /></ProtectedRoute>} />
+      <Route path="/medico/horario" element={<ProtectedRoute roles={HORARIO}><Horario /></ProtectedRoute>} />
+      <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
       <Route
         path="/citas/nueva"
         element={<ProtectedRoute roles={GESTION_CITAS}><ReservarCita /></ProtectedRoute>}
