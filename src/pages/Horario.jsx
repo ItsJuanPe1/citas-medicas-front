@@ -17,7 +17,12 @@ const aMinutos = (hhmm) => {
     return h * 60 + m;
 };
 
-/** El medico define sus franjas de cita. El superadmin elige de que medico. */
+const DIAS = [
+    ["LUNES", "Lunes"], ["MARTES", "Martes"], ["MIERCOLES", "Miércoles"], ["JUEVES", "Jueves"],
+    ["VIERNES", "Viernes"], ["SABADO", "Sábado"], ["DOMINGO", "Domingo"],
+];
+
+/** El medico define su horario semanal (se repite cada semana). El superadmin elige de que medico. */
 export default function Horario() {
     const { user } = useAuth();
     const toast = useToast();
@@ -25,9 +30,11 @@ export default function Horario() {
 
     const [medicos, setMedicos] = useState([]);
     const [idMedico, setIdMedico] = useState("");
+    const [semanal, setSemanal] = useState(null); // null = cargando; [{dia, desde, hasta}]
+    const [guardandoSem, setGuardandoSem] = useState(false);
     const [franjas, setFranjas] = useState(null); // null = cargando
     const [intento, setIntento] = useState(0);
-    const [form, setForm] = useState({ fecha: "", desde: "08:00", hasta: "12:00", duracion: "30" });
+    const [form, setForm] = useState({ fecha: "", desde: "08:00", hasta: "12:00" });
     const [guardando, setGuardando] = useState(false);
     const [quitando, setQuitando] = useState(null); // franja pendiente de confirmar
 
@@ -53,30 +60,68 @@ export default function Horario() {
         };
     }, [listo, query, intento, toast]);
 
+    useEffect(() => {
+        if (!listo) return;
+        let activo = true;
+        api(`/horario/semanal${query}`)
+            .then((d) => activo && setSemanal(d))
+            .catch((e) => {
+                if (!activo) return;
+                setSemanal([]);
+                toast.error(e.message);
+            });
+        return () => {
+            activo = false;
+        };
+    }, [listo, query, toast]);
+
     const campo = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
     function elegirMedico(e) {
         setIdMedico(e.target.value);
         setFranjas(null);
+        setSemanal(null);
         setQuitando(null);
     }
 
+    const cambiarBloque = (i, k, v) => setSemanal((b) => b.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+    const quitarBloque = (i) => setSemanal((b) => b.filter((_, j) => j !== i));
+    const agregarBloque = (dia) => setSemanal((b) => [...b, { dia, desde: "16:00", hasta: "19:00" }]);
+
+    const semanalOk = semanal && semanal.every((b) => b.desde && b.hasta && aMinutos(b.hasta) - aMinutos(b.desde) >= 30);
+
+    async function guardarSemanal() {
+        setGuardandoSem(true);
+        try {
+            const r = await api("/horario/semanal", {
+                method: "PUT",
+                body: { idMedico: esMedico ? null : Number(idMedico), bloques: semanal },
+            });
+            toast.ok(`Horario semanal guardado. Se repetirá cada semana (se crearon ${r.creadas} agendas).`);
+            setFranjas(null);
+            setIntento((n) => n + 1);
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setGuardandoSem(false);
+        }
+    }
+
     const minutos = form.desde && form.hasta ? aMinutos(form.hasta) - aMinutos(form.desde) : 0;
-    const cuantas = Math.floor(minutos / Number(form.duracion));
-    const formOk = listo && form.fecha && minutos > 0 && cuantas >= 1;
+    const formOk = listo && form.fecha && minutos >= 30;
 
     async function crear(e) {
         e.preventDefault();
         setGuardando(true);
         try {
-            const r = await api("/horario", {
+            await api("/horario", {
                 method: "POST",
                 body: {
                     idMedico: esMedico ? null : Number(idMedico),
-                    fecha: form.fecha, desde: form.desde, hasta: form.hasta, duracion: Number(form.duracion),
+                    fecha: form.fecha, desde: form.desde, hasta: form.hasta,
                 },
             });
-            toast.ok(`Se crearon ${r.creadas} horarios.`);
+            toast.ok("Horario creado. Los pacientes ya pueden reservar dentro de ese rango.");
             setFranjas(null);
             setIntento((n) => n + 1);
         } catch (err) {
@@ -103,7 +148,7 @@ export default function Horario() {
         <Shell>
             <div className="page-head">
                 <h1>{esMedico ? "Mi horario" : "Horarios de médicos"}</h1>
-                <p>Define cuándo atiendes. Cada franja es una cita que los pacientes pueden reservar.</p>
+                <p>Define qué días y horas atiendes cada semana (por ejemplo, martes de 4:00 a 7:00 pm). Los pacientes reservan citas dentro de cada rango.</p>
             </div>
 
             {!esMedico && (
@@ -116,6 +161,45 @@ export default function Horario() {
                 </div>
             )}
 
+            {listo && (
+                <section className="semanal" aria-labelledby="h-semanal">
+                    <h2 id="h-semanal">Horario semanal</h2>
+                    <p className="cell-sub">Lo que atiendes todas las semanas, sin fecha de fin. Puedes cambiarlo cuando quieras: al guardar se rehacen los días futuros sin citas; los que ya tienen citas no se tocan.</p>
+                    {semanal === null && <div className="state"><span>Cargando…</span></div>}
+                    {semanal && (
+                        <>
+                            <div className="semanal-dias">
+                                {DIAS.map(([clave, nombre]) => {
+                                    const del = semanal.map((b, i) => ({ ...b, i })).filter((b) => b.dia === clave);
+                                    return (
+                                        <div className="semanal-dia" key={clave}>
+                                            <div className="semanal-nombre">{nombre}</div>
+                                            <div className="semanal-bloques">
+                                                {del.length === 0 && <span className="cell-sub">No atiende</span>}
+                                                {del.map((b) => (
+                                                    <div className="semanal-bloque" key={b.i}>
+                                                        <input aria-label={`${nombre} desde`} type="time" step="300" value={b.desde} onChange={(e) => cambiarBloque(b.i, "desde", e.target.value)} />
+                                                        <span>–</span>
+                                                        <input aria-label={`${nombre} hasta`} type="time" step="300" value={b.hasta} onChange={(e) => cambiarBloque(b.i, "hasta", e.target.value)} />
+                                                        <button type="button" className="link-btn link-danger" onClick={() => quitarBloque(b.i)}>Quitar</button>
+                                                    </div>
+                                                ))}
+                                                <button type="button" className="link-btn" onClick={() => agregarBloque(clave)}>+ Agregar horas</button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <button type="button" className="btn btn-primary" disabled={!semanalOk || guardandoSem} onClick={guardarSemanal}>
+                                {guardandoSem ? "Guardando…" : "Guardar horario semanal"}
+                            </button>
+                        </>
+                    )}
+                </section>
+            )}
+
+            <h2 className="semanal-sub">Agregar un día puntual</h2>
+            <p className="cell-sub">Para una excepción de una sola fecha, fuera de tu horario semanal.</p>
             <form className="horario-form" onSubmit={crear}>
                 <div className="field">
                     <label htmlFor="h-fecha">Fecha</label>
@@ -129,15 +213,9 @@ export default function Horario() {
                     <label htmlFor="h-hasta">Hasta</label>
                     <input id="h-hasta" type="time" step="300" value={form.hasta} onChange={campo("hasta")} />
                 </div>
-                <div className="field">
-                    <label htmlFor="h-dur">Duración de cada cita</label>
-                    <select id="h-dur" value={form.duracion} onChange={campo("duracion")}>
-                        {[15, 20, 30, 45, 60].map((n) => <option key={n} value={n}>{n} minutos</option>)}
-                    </select>
-                </div>
                 <div className="horario-submit">
                     <button className="btn btn-primary" disabled={!formOk || guardando}>
-                        {guardando ? "Creando…" : cuantas >= 1 ? `Crear ${cuantas} horarios` : "Crear horarios"}
+                        {guardando ? "Creando…" : "Crear horario"}
                     </button>
                 </div>
             </form>
@@ -153,7 +231,7 @@ export default function Horario() {
                             <tr>
                                 <th scope="col" className="plain-th">Día</th>
                                 <th scope="col" className="plain-th">Hora</th>
-                                <th scope="col" className="plain-th">Estado</th>
+                                <th scope="col" className="plain-th">Citas</th>
                                 <th scope="col" className="plain-th"><span className="sr-only">Acciones</span></th>
                             </tr>
                         </thead>
@@ -166,22 +244,22 @@ export default function Horario() {
                                 <tr><td colSpan={4}>
                                     <div className="state">
                                         <strong>Sin horarios próximos</strong>
-                                        <span>Crea franjas con el formulario de arriba.</span>
+                                        <span>Guarda tu horario semanal para generarlos.</span>
                                     </div>
                                 </td></tr>
                             )}
                             {franjas && franjas.map((f) => {
-                                const libre = f.estado === "DISPONIBLE";
+                                const completa = f.estado !== "DISPONIBLE";
                                 return (
                                     <tr key={f.idAgenda} className={quitando === f.idAgenda ? "row-confirm" : undefined}>
                                         <td className="cell-name">{fmtDia.format(new Date(f.inicio))}</td>
                                         <td className="nowrap">{fmtHora.format(new Date(f.inicio))} – {fmtHora.format(new Date(f.fin))}</td>
                                         <td>
-                                            <span className={`badge badge-${f.estado.toLowerCase()}`}>{libre ? "Libre" : "Con cita"}</span>
-                                            {f.paciente && <span className="cell-sub"> · {f.paciente}</span>}
+                                            <span className={`badge badge-${f.estado.toLowerCase()}`}>{completa ? "Completo" : "Con espacio"}</span>
+                                            <span className="cell-sub"> · {f.citas === 0 ? "sin citas" : `${f.citas} ${f.citas === 1 ? "cita" : "citas"}`}</span>
                                         </td>
                                         <td className="cell-actions">
-                                            {libre && quitando !== f.idAgenda && (
+                                            {f.citasTotales === 0 && quitando !== f.idAgenda && (
                                                 <button type="button" className="link-btn link-danger" onClick={() => setQuitando(f.idAgenda)}>Quitar</button>
                                             )}
                                             {quitando === f.idAgenda && (

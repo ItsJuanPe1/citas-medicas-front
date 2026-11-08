@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, inicioDe } from "../auth/roles";
+import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, FARMACIA, inicioDe } from "../auth/roles";
 
 const ROLES = {
   SUPERADMIN: "Superadmin",
@@ -13,7 +13,7 @@ const ROLES = {
 
 // Enlaces del menu: si no hay "roles", lo ve cualquier usuario autenticado.
 const ENLACES = [
-  { to: "/inicio", label: "Inicio", roles: ["FARMACEUTICO"] },
+  { to: "/farmacia", label: "Farmacia", roles: FARMACIA },
   { to: "/medico/agenda", label: "Mi agenda", roles: AGENDA_MEDICO },
   { to: "/medico/horario", label: "Horarios", roles: HORARIO },
   { to: "/medicos", label: "Médicos", roles: VER_MEDICOS },

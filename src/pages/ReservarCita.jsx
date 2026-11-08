@@ -12,6 +12,24 @@ const fmtHora = new Intl.DateTimeFormat("es-CO", { hour: "2-digit", minute: "2-d
 
 const capitalizar = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 
+const fmtRango = new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "long" });
+const aFecha = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const sumarDias = (k, n) => {
+    const d = new Date(`${k}T00:00:00`);
+    d.setDate(d.getDate() + n);
+    return aFecha(d);
+};
+
+const DURACIONES = [15, 20, 30, 45, 60];
+const DURACION_PACIENTE = 30; // el paciente no elige la duracion
+
+const dosd = (n) => String(n).padStart(2, "0");
+/** Date -> "2026-11-09T08:30:00" en hora local, sin zona (como la espera el back). */
+const aLocalISO = (ms) => {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${dosd(d.getMonth() + 1)}-${dosd(d.getDate())}T${dosd(d.getHours())}:${dosd(d.getMinutes())}:00`;
+};
+
 function Franja({ titulo, items, elegido, onElegir }) {
     if (items.length === 0) return null;
     return (
@@ -20,10 +38,10 @@ function Franja({ titulo, items, elegido, onElegir }) {
             <div className="slot-grid">
                 {items.map((h) => (
                     <button
-                        key={h.idAgenda}
+                        key={`${h.idAgenda}-${h.inicio}`}
                         type="button"
                         className="slot"
-                        aria-pressed={elegido?.idAgenda === h.idAgenda}
+                        aria-pressed={elegido?.idAgenda === h.idAgenda && elegido?.inicio === h.inicio}
                         onClick={() => onElegir(h)}
                     >
                         <span className="slot-time">{fmtHora.format(new Date(h.inicio))}</span>
@@ -41,7 +59,12 @@ export default function ReservarCita() {
 
     const [medicos, setMedicos] = useState([]);
     const [idMedico, setIdMedico] = useState("");
-    const [horarios, setHorarios] = useState(null); // null = cargando
+    const [agendas, setAgendas] = useState(null); // null = cargando
+    const [duracion, setDuracion] = useState(DURACION_PACIENTE);
+    const [ahora] = useState(() => Date.now());
+    const hoy = useMemo(() => aFecha(new Date(ahora)), [ahora]);
+    const [desde, setDesde] = useState(null); // null = hoy; si no, primer dia de la semana que se esta viendo
+    const inicio = desde ?? hoy;
     const [intento, setIntento] = useState(0);
     const [dia, setDia] = useState(null);
     const [elegido, setElegido] = useState(null);
@@ -55,17 +78,35 @@ export default function ReservarCita() {
     useEffect(() => {
         if (!idMedico) return;
         let activo = true;
-        api(`/agendas/disponibles?idMedico=${idMedico}`)
-            .then((d) => activo && setHorarios(d))
+        api(`/agendas/disponibles?idMedico=${idMedico}&desde=${inicio}&dias=7`)
+            .then((d) => activo && setAgendas(d))
             .catch((e) => {
                 if (!activo) return;
-                setHorarios([]);
+                setAgendas([]);
                 toast.error(e.message);
             });
         return () => {
             activo = false;
         };
-    }, [idMedico, intento, toast]);
+    }, [idMedico, inicio, intento, toast]);
+
+    // Cada agenda es un rango de horas; se parte en citas de `duracion` minutos y se quitan los huecos ocupados.
+    const horarios = useMemo(() => {
+        if (agendas === null) return null;
+        const paso = duracion * 60000;
+        const libres = [];
+        for (const a of agendas) {
+            const ini = new Date(a.inicio).getTime();
+            const fin = new Date(a.fin).getTime();
+            const tramos = a.ocupados.map((o) => [new Date(o.inicio).getTime(), new Date(o.fin).getTime()]);
+            for (let t = ini; t + paso <= fin; t += paso) {
+                if (t <= ahora) continue;
+                if (tramos.some(([oi, ofin]) => oi < t + paso && ofin > t)) continue;
+                libres.push({ idAgenda: a.idAgenda, nombre: a.nombre, apellido: a.apellido, inicio: aLocalISO(t), fin: aLocalISO(t + paso) });
+            }
+        }
+        return libres;
+    }, [agendas, duracion, ahora]);
 
     // dia -> horarios de ese dia
     const porDia = useMemo(() => {
@@ -84,14 +125,22 @@ export default function ReservarCita() {
     const tarde = delDia.filter((h) => new Date(h.inicio).getHours() >= 12);
 
     function recargar() {
-        setHorarios(null);
+        setAgendas(null);
         setElegido(null);
         setIntento((n) => n + 1);
     }
 
+    function irA(fecha) {
+        setDesde(fecha && fecha > hoy ? fecha : null);
+        setAgendas(null);
+        setDia(null);
+        setElegido(null);
+    }
+
     function cambiarMedico(e) {
+        setDesde(null);
         setIdMedico(e.target.value);
-        setHorarios(null);
+        setAgendas(null);
         setDia(null);
         setElegido(null);
     }
@@ -101,7 +150,7 @@ export default function ReservarCita() {
         try {
             await api("/citas", {
                 method: "POST",
-                body: { idAgenda: elegido.idAgenda, idPaciente: esRecepcion ? paciente.id : undefined },
+                body: { idAgenda: elegido.idAgenda, inicio: elegido.inicio, fin: elegido.fin, idPaciente: esRecepcion ? paciente.id : undefined },
             });
             toast.ok(`Cita reservada con ${elegido.nombre} ${elegido.apellido}, ${fmtDiaLargo.format(new Date(elegido.inicio))} a las ${fmtHora.format(new Date(elegido.inicio))}.`);
         } catch (err) {
@@ -147,6 +196,27 @@ export default function ReservarCita() {
                     <section className="block" aria-labelledby="t-horario">
                         <h2 id="t-horario">Día y hora</h2>
 
+                        {esRecepcion ? (
+                            <div className="field" style={{ maxWidth: 220, marginBottom: 12 }}>
+                                <label htmlFor="duracion">Duración de la cita</label>
+                                <select id="duracion" value={duracion} onChange={(e) => { setDuracion(Number(e.target.value)); setElegido(null); }}>
+                                    {DURACIONES.map((n) => <option key={n} value={n}>{n} minutos</option>)}
+                                </select>
+                            </div>
+                        ) : (
+                            <p className="cell-sub" style={{ marginBottom: 12 }}>Cada cita dura {DURACION_PACIENTE} minutos.</p>
+                        )}
+
+                        <div className="semana-nav" role="group" aria-label="Semana">
+                            <button type="button" className="btn" disabled={inicio <= hoy} onClick={() => irA(sumarDias(inicio, -7))}>← Semana anterior</button>
+                            <strong>{fmtRango.format(new Date(`${inicio}T00:00:00`))} – {fmtRango.format(new Date(`${sumarDias(inicio, 6)}T00:00:00`))}</strong>
+                            <button type="button" className="btn" onClick={() => irA(sumarDias(inicio, 7))}>Semana siguiente →</button>
+                            <div className="field semana-fecha">
+                                <label htmlFor="ir-fecha">Ir a una fecha</label>
+                                <input id="ir-fecha" type="date" min={hoy} value={inicio} onChange={(e) => irA(e.target.value)} />
+                            </div>
+                        </div>
+
                         {horarios === null && (
                             <div className="slot-grid" aria-busy="true">
                                 {Array.from({ length: 8 }, (_, i) => <span key={i} className="skeleton slot-skel" />)}
@@ -155,8 +225,8 @@ export default function ReservarCita() {
 
                         {horarios && dias.length === 0 && (
                             <div className="state">
-                                <strong>Este médico no tiene horarios disponibles</strong>
-                                <span>Prueba con otro médico o vuelve más tarde.</span>
+                                <strong>No hay espacios libres</strong>
+                                <span>Prueba con otra duración, con otro médico, o mira otra semana o fecha con los botones de arriba.</span>
                             </div>
                         )}
 
@@ -193,7 +263,7 @@ export default function ReservarCita() {
             <div className="actionbar">
                 <p>
                     {elegido
-                        ? `${elegido.nombre} ${elegido.apellido} · ${capitalizar(fmtDiaLargo.format(new Date(elegido.inicio)))}, ${fmtHora.format(new Date(elegido.inicio))}`
+                        ? `${elegido.nombre} ${elegido.apellido} · ${capitalizar(fmtDiaLargo.format(new Date(elegido.inicio)))}, ${fmtHora.format(new Date(elegido.inicio))} a ${fmtHora.format(new Date(elegido.fin))}`
                         : "Ningún horario elegido"}
                 </p>
                 <button type="button" className="btn btn-primary" disabled={!puedeReservar} onClick={reservar}>

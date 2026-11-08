@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { api } from "../api";
 import ConsultaForm from "../components/ConsultaForm";
+import RecetaForm from "../components/RecetaForm";
 import Shell from "../components/Shell";
 import { useToast } from "../components/toast";
 
@@ -14,7 +15,14 @@ export default function MiAgenda() {
     const [historial, setHistorial] = useState(false);
     const [citas, setCitas] = useState(null); // null = cargando
     const [intento, setIntento] = useState(0);
-    const [abierta, setAbierta] = useState(null); // cita con el formulario abierto
+    const [ahora, setAhora] = useState(() => Date.now());
+    const [abierta, setAbierta] = useState(null); // { id, tipo: "consulta" | "receta" } del formulario abierto
+
+    // Reloj: el boton "Registrar consulta" aparece solo cuando llega la hora de la cita
+    useEffect(() => {
+        const t = setInterval(() => setAhora(Date.now()), 30_000);
+        return () => clearInterval(t);
+    }, []);
 
     useEffect(() => {
         let activo = true;
@@ -36,7 +44,7 @@ export default function MiAgenda() {
         setCitas(null);
     }
 
-    function consultaGuardada() {
+    function formGuardado() {
         setAbierta(null);
         setCitas(null);
         setIntento((n) => n + 1);
@@ -89,20 +97,31 @@ export default function MiAgenda() {
                                         {c.paciente}<span className="cell-sub"> · {c.documento}</span>
                                         {c.diagnostico && <span className="motivo"><strong>Diagnóstico:</strong> {c.diagnostico}</span>}
                                         {c.notas && <span className="motivo">{c.notas}</span>}
+                                        {c.receta && <span className="motivo"><strong>Receta ({c.estadoReceta?.toLowerCase()}):</strong> {c.receta}</span>}
                                     </td>
                                     <td><span className={`badge badge-${c.estado.toLowerCase()}`}>{c.estado}</span></td>
                                     <td className="cell-actions">
-                                        {c.estado === "PROGRAMADA" && abierta !== c.idCita && (
-                                            <button type="button" className="link-btn" onClick={() => setAbierta(c.idCita)}>
+                                        {c.estado === "PROGRAMADA" && new Date(c.inicio).getTime() > ahora && (
+                                            <span className="cell-sub">Disponible desde la hora de la cita</span>
+                                        )}
+                                        {c.estado === "PROGRAMADA" && new Date(c.inicio).getTime() <= ahora && abierta?.id !== c.idCita && (
+                                            <button type="button" className="link-btn" onClick={() => setAbierta({ id: c.idCita, tipo: "consulta" })}>
                                                 Registrar consulta
+                                            </button>
+                                        )}
+                                        {c.estado === "ATENDIDA" && c.idHistoria && !c.receta && abierta?.id !== c.idCita && (
+                                            <button type="button" className="link-btn" onClick={() => setAbierta({ id: c.idCita, tipo: "receta" })}>
+                                                Recetar
                                             </button>
                                         )}
                                     </td>
                                 </tr>
-                                {abierta === c.idCita && (
+                                {abierta?.id === c.idCita && (
                                     <tr className="row-form">
                                         <td colSpan={4}>
-                                            <ConsultaForm idCita={c.idCita} onDone={consultaGuardada} onCancel={() => setAbierta(null)} />
+                                            {abierta.tipo === "consulta"
+                                                ? <ConsultaForm idCita={c.idCita} onDone={formGuardado} onCancel={() => setAbierta(null)} />
+                                                : <RecetaForm idHistoria={c.idHistoria} onDone={formGuardado} onCancel={() => setAbierta(null)} />}
                                         </td>
                                     </tr>
                                 )}

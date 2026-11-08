@@ -1135,3 +1135,137 @@ input[type="time"]:focus-visible {
 .contacto-form .btn {
   width: auto;
 }
+
+/* ---------- Receta (HU05) ---------- */
+.receta-form {
+  max-width: 860px;
+}
+
+.receta-linea {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) 90px minmax(160px, 1.4fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.receta-quitar {
+  padding-bottom: 8px;
+}
+
+@media (max-width: 720px) {
+  .receta-linea {
+    grid-template-columns: 1fr 90px;
+  }
+
+  .receta-linea .field:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+
+.semanal {
+  max-width: 860px;
+  margin-bottom: 28px;
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.semanal h2,
+.semanal-sub {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.semanal-sub {
+  margin-top: 8px;
+}
+
+.semanal-dias {
+  display: grid;
+  width: 100%;
+  border: 1px solid var(--border, oklch(0.9 0 0));
+  border-radius: var(--radius);
+}
+
+.semanal-dia {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  padding: 10px 14px;
+  align-items: start;
+}
+
+.semanal-dia+.semanal-dia {
+  border-top: 1px solid var(--border, oklch(0.9 0 0));
+}
+
+.semanal-nombre {
+  font-weight: 600;
+  padding-top: 6px;
+}
+
+.semanal-bloques {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.semanal-bloque {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+@media (max-width: 560px) {
+  .semanal-dia {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+.semana-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.semana-fecha {
+  margin-left: auto;
+}
+
+.cancel-pregunta {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: oklch(0.2 0.02 200 / 0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.modal {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: min(440px, 100%);
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 12px 40px oklch(0 0 0 / 0.25);
+}
+
+.modal h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.modal p {
+  margin: 0;
+}
