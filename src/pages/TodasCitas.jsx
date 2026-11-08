@@ -69,6 +69,7 @@ export default function TodasCitas() {
                         <option value="PROGRAMADA">Programada</option>
                         <option value="ATENDIDA">Atendida</option>
                         <option value="CANCELADA">Cancelada</option>
+                        <option value="NO_ASISTIO">No asistió</option>
                     </select>
                 </div>
                 <div className="field">

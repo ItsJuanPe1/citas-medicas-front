@@ -21,7 +21,6 @@ export default function Citas() {
   const [citas, setCitas] = useState(null); // null = cargando
   const [intento, setIntento] = useState(0);
   const [confirmando, setConfirmando] = useState(null);
-  const [motivo, setMotivo] = useState("");
   const [cancelando, setCancelando] = useState(false);
 
   const necesitaPaciente = esRecepcion && !paciente;
@@ -49,14 +48,13 @@ export default function Citas() {
   }
 
   function abrirCancelacion(id) {
-    setMotivo("");
     setConfirmando(id);
   }
 
   async function cancelar(id) {
     setCancelando(true);
     try {
-      await api(`/citas/${id}/cancelar`, { method: "PUT", body: { motivo: motivo.trim() } });
+      await api(`/citas/${id}/cancelar`, { method: "PUT" });
       toast.ok("Cita cancelada. El horario quedó disponible de nuevo.");
     } catch (err) {
       toast.error(err.message);
@@ -149,24 +147,13 @@ export default function Citas() {
                             onSubmit={(e) => { e.preventDefault(); cancelar(c.idCita); }}
                             onKeyDown={(e) => e.key === "Escape" && setConfirmando(null)}
                           >
-                            <div className="field">
-                              <label htmlFor={`motivo-${c.idCita}`}>Motivo de la cancelación</label>
-                              <input
-                                id={`motivo-${c.idCita}`}
-                                type="text"
-                                maxLength={255}
-                                autoFocus
-                                placeholder="Ej.: no puedo asistir ese día"
-                                value={motivo}
-                                onChange={(e) => setMotivo(e.target.value)}
-                              />
-                            </div>
+                            <p className="cancel-pregunta">¿Seguro que quieres cancelar esta cita?</p>
                             <div className="cancel-actions">
-                              <button className="btn btn-danger" disabled={cancelando || motivo.trim().length < 5}>
-                                {cancelando ? "Cancelando…" : "Confirmar cancelación"}
+                              <button className="btn btn-danger" autoFocus disabled={cancelando}>
+                                {cancelando ? "Cancelando…" : "Sí, cancelar"}
                               </button>
                               <button type="button" className="link-btn" disabled={cancelando} onClick={() => setConfirmando(null)}>
-                                Volver
+                                No, volver
                               </button>
                             </div>
                           </form>
