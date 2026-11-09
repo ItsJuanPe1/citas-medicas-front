@@ -71,9 +71,14 @@ export default function Farmacia() {
         };
     }, [busqueda, intento, toast]);
 
+    // Busqueda en vivo: espera 300 ms despues de la ultima tecla
+    useEffect(() => {
+        const t = setTimeout(() => setBusqueda(documento.trim()), 300);
+        return () => clearTimeout(t);
+    }, [documento]);
+
     function buscar(e) {
         e.preventDefault();
-        setPendientes(null);
         setBusqueda(documento.trim());
     }
 
@@ -106,7 +111,6 @@ export default function Farmacia() {
             <form className="search-row toolbar" onSubmit={buscar}>
                 <input type="search" placeholder="Documento del paciente" aria-label="Documento del paciente"
                     value={documento} onChange={(e) => setDocumento(e.target.value)} />
-                <button className="btn btn-secondary">Buscar</button>
             </form>
 
             <div className="table-wrap">

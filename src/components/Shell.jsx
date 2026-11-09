@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, FARMACIA, inicioDe } from "../auth/roles";
+import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, FARMACIA, USUARIOS, inicioDe } from "../auth/roles";
 
 const ROLES = {
   SUPERADMIN: "Superadmin",
@@ -20,6 +20,7 @@ const ENLACES = [
   { to: "/citas/nueva", label: "Reservar cita", roles: GESTION_CITAS },
   { to: "/citas", label: "Citas", roles: GESTION_CITAS },
   { to: "/admin/citas", label: "Todas las citas", roles: ADMIN_CITAS },
+  { to: "/admin/usuarios", label: "Usuarios", roles: USUARIOS },
   { to: "/admin/auditoria", label: "Auditoría", roles: AUDITORIA },
 ];
 

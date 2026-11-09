@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import Shell from "../components/Shell";
@@ -98,6 +99,10 @@ export default function Perfil() {
                             </button>
                         </div>
                     </form>
+                    <section className="block">
+                        <h2>Contraseña</h2>
+                        <p><Link to="/cambiar-clave" className="link-btn">Cambiar mi contraseña</Link></p>
+                    </section>
                 </div>
             )}
         </Shell>

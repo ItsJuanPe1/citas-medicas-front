@@ -1269,3 +1269,39 @@ input[type="time"]:focus-visible {
 .modal p {
   margin: 0;
 }
+
+.registro-panel {
+  width: min(640px, 100%);
+}
+
+.registro-grid,
+.usuario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 16px;
+}
+
+.auth-alt {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.auth-alt a {
+  color: var(--accent);
+}
+
+.check-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.acciones {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+}
