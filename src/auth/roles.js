@@ -2,6 +2,7 @@
 export const GESTION_CITAS = ["PACIENTE", "RECEPCIONISTA", "SUPERADMIN"];
 export const ADMIN_CITAS = ["SUPERADMIN", "GERENTE"];
 export const AUDITORIA = ["SUPERADMIN"];
+export const USUARIOS = ["SUPERADMIN"]; // crear personal, estado y clave
 export const VER_MEDICOS = ["SUPERADMIN", "GERENTE", "RECEPCIONISTA"];
 export const AGENDA_MEDICO = ["MEDICO"];
 export const REGISTRAR_CONSULTA = ["MEDICO", "SUPERADMIN"]; // HU03

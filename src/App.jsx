@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/AuthContext";
-import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, FARMACIA, inicioDe } from "./auth/roles";
+import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, FARMACIA, USUARIOS, inicioDe } from "./auth/roles";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import ReservarCita from "./pages/ReservarCita";
@@ -13,6 +13,9 @@ import MiAgenda from "./pages/MiAgenda";
 import Horario from "./pages/Horario";
 import Perfil from "./pages/Perfil";
 import Farmacia from "./pages/Farmacia";
+import CambiarClave from "./pages/CambiarClave";
+import Registro from "./pages/Registro";
+import Usuarios from "./pages/Usuarios";
 
 // "/" lleva a cada rol a su pantalla principal
 function RedirigirInicio() {
@@ -24,12 +27,15 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/registro" element={<Registro />} />
+      <Route path="/admin/usuarios" element={<ProtectedRoute roles={USUARIOS}><Usuarios /></ProtectedRoute>} />
       <Route path="/" element={<ProtectedRoute><RedirigirInicio /></ProtectedRoute>} />
       <Route path="/inicio" element={<ProtectedRoute><Inicio /></ProtectedRoute>} />
       <Route path="/medicos" element={<ProtectedRoute roles={VER_MEDICOS}><Home /></ProtectedRoute>} />
       <Route path="/medico/agenda" element={<ProtectedRoute roles={AGENDA_MEDICO}><MiAgenda /></ProtectedRoute>} />
       <Route path="/medico/horario" element={<ProtectedRoute roles={HORARIO}><Horario /></ProtectedRoute>} />
       <Route path="/farmacia" element={<ProtectedRoute roles={FARMACIA}><Farmacia /></ProtectedRoute>} />
+      <Route path="/cambiar-clave" element={<ProtectedRoute><CambiarClave /></ProtectedRoute>} />
       <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
       <Route
         path="/citas/nueva"

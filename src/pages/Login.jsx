@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 export default function Login() {
@@ -74,6 +74,7 @@ export default function Login() {
         <button className="btn btn-primary" disabled={cargando || !username || !password}>
           {cargando ? "Entrando…" : "Entrar"}
         </button>
+        <p className="auth-alt">¿Eres paciente y no tienes cuenta? <Link to="/registro">Regístrate</Link></p>
       </form>
     </div>
   );
