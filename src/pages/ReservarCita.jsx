@@ -20,8 +20,7 @@ const sumarDias = (k, n) => {
     return aFecha(d);
 };
 
-const DURACIONES = [15, 20, 30, 45, 60];
-const DURACION_PACIENTE = 30; // el paciente no elige la duracion
+const DURACION = 60; // toda cita dura exactamente 1 hora (la BD tambien lo exige)
 
 const dosd = (n) => String(n).padStart(2, "0");
 /** Date -> "2026-11-09T08:30:00" en hora local, sin zona (como la espera el back). */
@@ -60,7 +59,6 @@ export default function ReservarCita() {
     const [medicos, setMedicos] = useState([]);
     const [idMedico, setIdMedico] = useState("");
     const [agendas, setAgendas] = useState(null); // null = cargando
-    const [duracion, setDuracion] = useState(DURACION_PACIENTE);
     const [ahora] = useState(() => Date.now());
     const hoy = useMemo(() => aFecha(new Date(ahora)), [ahora]);
     const [desde, setDesde] = useState(null); // null = hoy; si no, primer dia de la semana que se esta viendo
@@ -93,7 +91,7 @@ export default function ReservarCita() {
     // Cada agenda es un rango de horas; se parte en citas de `duracion` minutos y se quitan los huecos ocupados.
     const horarios = useMemo(() => {
         if (agendas === null) return null;
-        const paso = duracion * 60000;
+        const paso = DURACION * 60000;
         const libres = [];
         for (const a of agendas) {
             const ini = new Date(a.inicio).getTime();
@@ -106,7 +104,7 @@ export default function ReservarCita() {
             }
         }
         return libres;
-    }, [agendas, duracion, ahora]);
+    }, [agendas, ahora]);
 
     // dia -> horarios de ese dia
     const porDia = useMemo(() => {
@@ -196,16 +194,7 @@ export default function ReservarCita() {
                     <section className="block" aria-labelledby="t-horario">
                         <h2 id="t-horario">Día y hora</h2>
 
-                        {esRecepcion ? (
-                            <div className="field" style={{ maxWidth: 220, marginBottom: 12 }}>
-                                <label htmlFor="duracion">Duración de la cita</label>
-                                <select id="duracion" value={duracion} onChange={(e) => { setDuracion(Number(e.target.value)); setElegido(null); }}>
-                                    {DURACIONES.map((n) => <option key={n} value={n}>{n} minutos</option>)}
-                                </select>
-                            </div>
-                        ) : (
-                            <p className="cell-sub" style={{ marginBottom: 12 }}>Cada cita dura {DURACION_PACIENTE} minutos.</p>
-                        )}
+                        <p className="cell-sub" style={{ marginBottom: 12 }}>Cada cita dura 1 hora.</p>
 
                         <div className="semana-nav" role="group" aria-label="Semana">
                             <button type="button" className="btn" disabled={inicio <= hoy} onClick={() => irA(sumarDias(inicio, -7))}>← Semana anterior</button>

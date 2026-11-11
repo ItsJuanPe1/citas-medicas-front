@@ -88,7 +88,7 @@ export default function Horario() {
     const quitarBloque = (i) => setSemanal((b) => b.filter((_, j) => j !== i));
     const agregarBloque = (dia) => setSemanal((b) => [...b, { dia, desde: "16:00", hasta: "19:00" }]);
 
-    const semanalOk = semanal && semanal.every((b) => b.desde && b.hasta && aMinutos(b.hasta) - aMinutos(b.desde) >= 30);
+    const semanalOk = semanal && semanal.every((b) => b.desde && b.hasta && aMinutos(b.hasta) - aMinutos(b.desde) >= 60 && (aMinutos(b.hasta) - aMinutos(b.desde)) % 60 === 0);
 
     async function guardarSemanal() {
         setGuardandoSem(true);
@@ -108,7 +108,7 @@ export default function Horario() {
     }
 
     const minutos = form.desde && form.hasta ? aMinutos(form.hasta) - aMinutos(form.desde) : 0;
-    const formOk = listo && form.fecha && minutos >= 30;
+    const formOk = listo && form.fecha && minutos >= 60 && minutos % 60 === 0;
 
     async function crear(e) {
         e.preventDefault();
@@ -148,7 +148,7 @@ export default function Horario() {
         <Shell>
             <div className="page-head">
                 <h1>{esMedico ? "Mi horario" : "Horarios de médicos"}</h1>
-                <p>Define qué días y horas atiendes cada semana (por ejemplo, martes de 4:00 a 7:00 pm). Los pacientes reservan citas dentro de cada rango.</p>
+                <p>Define qué días y horas atiendes cada semana (por ejemplo, martes de 4:00 a 7:00 pm). Cada cita dura 1 hora, así que cada bloque debe ser de horas completas (por ejemplo, 4:00 a 7:00 son 3 citas).</p>
             </div>
 
             {!esMedico && (
