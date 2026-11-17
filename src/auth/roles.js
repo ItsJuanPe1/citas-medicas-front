@@ -9,6 +9,8 @@ export const REGISTRAR_CONSULTA = ["MEDICO", "SUPERADMIN"]; // HU03
 export const RECETAR = ["MEDICO", "SUPERADMIN"]; // HU05: prescribir
 export const FARMACIA = ["FARMACEUTICO", "SUPERADMIN"]; // HU05: entregar
 export const HORARIO = ["MEDICO", "SUPERADMIN"]; // medico define sus franjas
+export const CANCELACION_MASIVA = ["SUPERADMIN"];
+export const REPORTES = ["GERENTE", "SUPERADMIN"];
 
 // Pantalla a la que llega cada rol al iniciar sesion. Cada HU nueva ajusta la de su rol.
 const INICIO = {

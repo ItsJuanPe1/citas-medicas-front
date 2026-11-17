@@ -50,7 +50,7 @@ function MedicamentoPicker({ id, catalogo, usados, value, onChange, autoFocus })
 }
 
 /** HU05: el medico receta medicamentos a partir de una consulta ya registrada. */
-export default function RecetaForm({ idHistoria, onDone, onCancel }) {
+export default function RecetaForm({ idHistoria, onDone, onCancel, cancelLabel = "Volver" }) {
     const toast = useToast();
     const [catalogo, setCatalogo] = useState(null); // null = cargando
     const [lineas, setLineas] = useState([nuevaLinea()]);
@@ -143,7 +143,7 @@ export default function RecetaForm({ idHistoria, onDone, onCancel }) {
                 <button className="btn btn-primary" disabled={guardando || !completa}>
                     {guardando ? "Guardando…" : "Guardar receta"}
                 </button>
-                <button type="button" className="link-btn" disabled={guardando} onClick={onCancel}>Volver</button>
+                <button type="button" className="link-btn" disabled={guardando} onClick={onCancel}>{cancelLabel}</button>
             </div>
         </form>
     );

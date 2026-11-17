@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, FARMACIA, USUARIOS, inicioDe } from "../auth/roles";
+import { GESTION_CITAS, ADMIN_CITAS, AUDITORIA, VER_MEDICOS, AGENDA_MEDICO, HORARIO, FARMACIA, USUARIOS, CANCELACION_MASIVA, REPORTES, inicioDe } from "../auth/roles";
 
 const ROLES = {
   SUPERADMIN: "Superadmin",
@@ -14,6 +14,7 @@ const ROLES = {
 // Enlaces del menu: si no hay "roles", lo ve cualquier usuario autenticado.
 const ENLACES = [
   { to: "/farmacia", label: "Farmacia", roles: FARMACIA },
+  { to: "/farmacia/stock", label: "Stock", roles: FARMACIA },
   { to: "/medico/agenda", label: "Mi agenda", roles: AGENDA_MEDICO },
   { to: "/medico/horario", label: "Horarios", roles: HORARIO },
   { to: "/medicos", label: "Médicos", roles: VER_MEDICOS },
@@ -22,6 +23,8 @@ const ENLACES = [
   { to: "/admin/citas", label: "Todas las citas", roles: ADMIN_CITAS },
   { to: "/admin/usuarios", label: "Usuarios", roles: USUARIOS },
   { to: "/admin/auditoria", label: "Auditoría", roles: AUDITORIA },
+  { to: "/admin/cancelacion-masiva", label: "Cancelación masiva", roles: CANCELACION_MASIVA },
+  { to: "/reporte", label: "Reporte", roles: REPORTES },
 ];
 
 export default function Shell({ children }) {
