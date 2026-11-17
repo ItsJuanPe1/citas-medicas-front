@@ -13,12 +13,12 @@ export default function ConsultaForm({ idCita, onDone, onCancel }) {
         e.preventDefault();
         setGuardando(true);
         try {
-            await api("/historias", {
+            const r = await api("/historias", {
                 method: "POST",
                 body: { idCita, diagnostico: diagnostico.trim(), notas: notas.trim() },
             });
-            toast.ok("Consulta registrada. La cita quedó como ATENDIDA.");
-            onDone();
+            toast.ok("Consulta registrada. Ahora puedes recetar.");
+            onDone(r?.idHistoria);
         } catch (err) {
             toast.error(err.message);
             setGuardando(false);

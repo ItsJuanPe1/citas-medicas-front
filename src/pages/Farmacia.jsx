@@ -91,6 +91,14 @@ export default function Farmacia() {
                     ? `${p.medicamento}: entregado completo (${r.entregadas}).`
                     : `${p.medicamento}: se entregaron ${r.entregadas}; quedan ${r.pendientes} pendientes.`
             );
+            // Aviso si el stock quedo bajo el minimo (HU06)
+            try {
+                const st = await api(`/farmacia/stock?q=${encodeURIComponent(p.medicamento)}`);
+                const m = st.find((x) => x.medicamento === p.medicamento && x.presentacion === p.presentacion) ?? st.find((x) => x.medicamento === p.medicamento);
+                if (m && m.disponible < m.minimo) {
+                    toast.error(`Stock bajo: de ${m.medicamento} quedan ${m.disponible} (mínimo ${m.minimo}). Hay que reponerlo.`);
+                }
+            } catch { /* el aviso es opcional */ }
             setPendientes(null);
             setIntento((n) => n + 1);
         } catch (err) {
@@ -109,8 +117,9 @@ export default function Farmacia() {
             </div>
 
             <form className="search-row toolbar" onSubmit={buscar}>
-                <input type="search" placeholder="Documento del paciente" aria-label="Documento del paciente"
-                    value={documento} onChange={(e) => setDocumento(e.target.value)} />
+                <input type="search" inputMode="numeric" maxLength={20} placeholder="Buscar por número de documento (solo números)"
+                    aria-label="Número de documento del paciente" value={documento}
+                    onChange={(e) => setDocumento(e.target.value.replace(/\D/g, ""))} />
             </form>
 
             <div className="table-wrap">

@@ -44,6 +44,16 @@ export default function MiAgenda() {
         setCitas(null);
     }
 
+    // Al guardar el diagnostico se abre la receta ahi mismo
+    function consultaGuardada(idCita, idHistoria) {
+        if (idHistoria) {
+            setAbierta({ id: idCita, tipo: "receta", idHistoria, recienAtendida: true });
+            // la lista no se recarga ahora: en "Próximas" la cita ya atendida desaparecería y se cerraría la receta
+        } else {
+            formGuardado();
+        }
+    }
+
     function formGuardado() {
         setAbierta(null);
         setCitas(null);
@@ -109,7 +119,7 @@ export default function MiAgenda() {
                                                 Registrar consulta
                                             </button>
                                         )}
-                                        {c.estado === "ATENDIDA" && c.idHistoria && !c.receta && abierta?.id !== c.idCita && (
+                                        {c.estado === "ATENDIDA" && c.idHistoria && !c.receta && ahora - new Date(c.inicio).getTime() < 24 * 3600 * 1000 && abierta?.id !== c.idCita && (
                                             <button type="button" className="link-btn" onClick={() => setAbierta({ id: c.idCita, tipo: "receta" })}>
                                                 Recetar
                                             </button>
@@ -120,8 +130,10 @@ export default function MiAgenda() {
                                     <tr className="row-form">
                                         <td colSpan={4}>
                                             {abierta.tipo === "consulta"
-                                                ? <ConsultaForm idCita={c.idCita} onDone={formGuardado} onCancel={() => setAbierta(null)} />
-                                                : <RecetaForm idHistoria={c.idHistoria} onDone={formGuardado} onCancel={() => setAbierta(null)} />}
+                                                ? <ConsultaForm idCita={c.idCita} onDone={(h) => consultaGuardada(c.idCita, h)} onCancel={() => setAbierta(null)} />
+                                                : <RecetaForm idHistoria={abierta.idHistoria ?? c.idHistoria} onDone={formGuardado}
+                                                    cancelLabel={abierta.recienAtendida ? "No requiere receta" : "Volver"}
+                                                    onCancel={abierta.recienAtendida ? formGuardado : () => setAbierta(null)} />}
                                         </td>
                                     </tr>
                                 )}
