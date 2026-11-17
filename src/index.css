@@ -147,7 +147,8 @@ input[type="text"],
 input[type="password"],
 input[type="search"],
 input[type="date"],
-select {
+select,
+textarea {
   font: inherit;
   width: 100%;
   min-height: 40px;
@@ -165,12 +166,14 @@ input::placeholder {
 }
 
 input:hover,
-select:hover {
+select:hover,
+textarea:hover {
   border-color: oklch(0.65 0.02 210);
 }
 
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+textarea:focus-visible {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
@@ -991,4 +994,314 @@ h3 {
   background: var(--panel);
   color: var(--ink);
   box-shadow: 0 1px 2px oklch(0.2 0.03 220 / 0.15);
+}
+
+/* ---------- Registrar consulta (HU03) ---------- */
+textarea {
+  padding: 10px 12px;
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.row-form td {
+  background: oklch(0.975 0.012 195);
+  padding-block: 16px;
+}
+
+.consulta-form {
+  display: grid;
+  gap: 14px;
+  max-width: 640px;
+}
+
+.pass-wrap {
+  position: relative;
+}
+
+.pass-wrap input {
+  padding-right: 46px;
+}
+
+.pass-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  color: var(--muted, oklch(0.5 0.02 200));
+  cursor: pointer;
+  border-radius: 0 8px 8px 0;
+}
+
+.pass-toggle:hover {
+  color: var(--ink, oklch(0.2 0.02 200));
+}
+
+.pass-toggle:focus-visible {
+  outline: 2px solid oklch(0.55 0.1 195);
+  outline-offset: -2px;
+}
+
+/* ---------- Estado NO_ASISTIO, horarios y perfil ---------- */
+.badge-no_asistio {
+  background: oklch(0.95 0.04 75);
+  color: oklch(0.42 0.1 65);
+}
+
+.badge-disponible {
+  background: var(--accent-soft);
+  color: oklch(0.38 0.09 195);
+}
+
+.badge-ocupada {
+  background: oklch(0.94 0.005 220);
+  color: var(--ink-2);
+}
+
+input[type="time"] {
+  font: inherit;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid oklch(0.80 0.01 210);
+  border-radius: var(--radius);
+}
+
+input[type="time"]:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.horario-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 24px;
+  max-width: 860px;
+}
+
+.horario-submit {
+  display: flex;
+}
+
+.who {
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius);
+  padding: 2px 8px;
+}
+
+.who:hover {
+  background: oklch(1 0 0 / 0.08);
+}
+
+.who:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.perfil-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  max-width: 860px;
+}
+
+.datos {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.dato dt {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.dato dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.contacto-form .btn {
+  width: auto;
+}
+
+/* ---------- Receta (HU05) ---------- */
+.receta-form {
+  max-width: 860px;
+}
+
+.receta-linea {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) 90px minmax(160px, 1.4fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.receta-quitar {
+  padding-bottom: 8px;
+}
+
+@media (max-width: 720px) {
+  .receta-linea {
+    grid-template-columns: 1fr 90px;
+  }
+
+  .receta-linea .field:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+
+.semanal {
+  max-width: 860px;
+  margin-bottom: 28px;
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.semanal h2,
+.semanal-sub {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.semanal-sub {
+  margin-top: 8px;
+}
+
+.semanal-dias {
+  display: grid;
+  width: 100%;
+  border: 1px solid var(--border, oklch(0.9 0 0));
+  border-radius: var(--radius);
+}
+
+.semanal-dia {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  padding: 10px 14px;
+  align-items: start;
+}
+
+.semanal-dia+.semanal-dia {
+  border-top: 1px solid var(--border, oklch(0.9 0 0));
+}
+
+.semanal-nombre {
+  font-weight: 600;
+  padding-top: 6px;
+}
+
+.semanal-bloques {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+.semanal-bloque {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+@media (max-width: 560px) {
+  .semanal-dia {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+.semana-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.semana-fecha {
+  margin-left: auto;
+}
+
+.cancel-pregunta {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: oklch(0.2 0.02 200 / 0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.modal {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: min(440px, 100%);
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 12px 40px oklch(0 0 0 / 0.25);
+}
+
+.modal h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.modal p {
+  margin: 0;
+}
+
+.registro-panel {
+  width: min(640px, 100%);
+}
+
+.registro-grid,
+.usuario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 16px;
+}
+
+.auth-alt {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.auth-alt a {
+  color: var(--accent);
+}
+
+.check-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.acciones {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
 }

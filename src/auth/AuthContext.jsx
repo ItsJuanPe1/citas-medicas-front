@@ -25,10 +25,18 @@ export function AuthProvider({ children }) {
 
   async function login(username, password) {
     const data = await api("/auth/login", { method: "POST", body: { username, password } });
-    const u = { username: data.username, rol: data.rol, idEntidad: data.idEntidad };
     localStorage.setItem("token", data.token);
+    const u = { username: data.username, rol: data.rol, idEntidad: data.idEntidad, debeCambiarClave: data.debeCambiarClave === true };
     localStorage.setItem("user", JSON.stringify(u));
     setUser(u);
+  }
+
+  function claveCambiada() {
+    setUser((u) => {
+      const nuevo = { ...u, debeCambiarClave: false };
+      localStorage.setItem("user", JSON.stringify(nuevo));
+      return nuevo;
+    });
   }
 
   function logout() {
@@ -37,7 +45,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, login, logout, claveCambiada }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);
