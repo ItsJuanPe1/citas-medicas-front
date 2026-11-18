@@ -129,7 +129,11 @@ export default function Citas() {
                       </td>
                       <td>
                         <span className={`badge badge-${c.estado.toLowerCase()}`}>{c.estado}</span>
-                        {c.motivo && <span className="motivo">Motivo: {c.motivo}</span>}
+                        {c.motivo && (
+                          <span className="motivo">
+                            {c.estado === "CANCELADA" ? "Motivo" : "Aviso"}: {c.motivo}
+                          </span>
+                        )}
                       </td>
                       <td className="cell-actions">
                         {cancelable && confirmando !== c.idCita && (
