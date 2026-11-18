@@ -8,6 +8,7 @@ const fmt = new Intl.DateTimeFormat("es-CO", { dateStyle: "short", timeStyle: "m
 const ACCIONES = {
   RESERVAR_CITA: "Cita reservada",
   CANCELAR_CITA: "Cita cancelada",
+  REPROGRAMAR_CITA: "Cita reprogramada",
   CANCELACION_MASIVA: "Cancelación masiva de citas",
   REGISTRAR_CONSULTA: "Consulta registrada",
   PRESCRIBIR_RECETA: "Receta emitida",
@@ -53,6 +54,8 @@ const CAMPOS = {
   pendiente: "Pendiente por entregar", stock: "Stock", disponible: "Disponible", minimo: "Mínimo", dosis: "Dosis",
   nombre: "Nombre", descripcion: "Descripción", presentacion: "Presentación", emision: "Emisión", fecha: "Fecha",
   canceladas: "Citas canceladas", "agendas bloqueadas": "Horarios bloqueados", "citas programadas": "Citas programadas",
+  citas_reprogramadas: "Citas reprogramadas", citas_canceladas: "Citas canceladas", agendas_creadas: "Horarios creados",
+  medico: "Médico", bloques: "Bloques por semana",
   username: "Usuario", rol: "Rol",
 };
 
