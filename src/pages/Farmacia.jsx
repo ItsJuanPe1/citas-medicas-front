@@ -58,17 +58,15 @@ export default function Farmacia() {
     const [modal, setModal] = useState(null); // pendiente que se esta confirmando
 
     useEffect(() => {
-        let activo = true;
-        api(`/farmacia/pendientes${busqueda ? `?documento=${encodeURIComponent(busqueda)}` : ""}`)
-            .then((d) => activo && setPendientes(d))
+        const controller = new AbortController();
+        api(`/farmacia/pendientes${busqueda ? `?documento=${encodeURIComponent(busqueda)}` : ""}`, { signal: controller.signal })
+            .then(setPendientes)
             .catch((e) => {
-                if (!activo) return;
+                if (controller.signal.aborted) return;
                 setPendientes([]);
                 toast.error(e.message);
             });
-        return () => {
-            activo = false;
-        };
+        return () => controller.abort();
     }, [busqueda, intento, toast]);
 
     // Busqueda en vivo: espera 300 ms despues de la ultima tecla

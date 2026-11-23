@@ -13,23 +13,25 @@ export default function PacientePicker({ value, onChange }) {
 
     // Busqueda en vivo: con 2 o mas letras, 300 ms despues de la ultima
     useEffect(() => {
-        let activo = true;
+        const controller = new AbortController();
         const t = setTimeout(() => {
             const texto = q.trim();
             if (texto.length < 2) {
                 setResultados(null);
                 return;
             }
-            api(`/pacientes?q=${encodeURIComponent(texto)}`)
+            api(`/pacientes?q=${encodeURIComponent(texto)}`, { signal: controller.signal })
                 .then((d) => {
-                    if (!activo) return;
                     setError(null);
                     setResultados(d);
                 })
-                .catch((err) => activo && setError(err.message));
+                .catch((err) => {
+                    if (controller.signal.aborted) return;
+                    setError(err.message);
+                });
         }, 300);
         return () => {
-            activo = false;
+            controller.abort();
             clearTimeout(t);
         };
     }, [q]);

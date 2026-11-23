@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api, apiCached, invalidarCache } from "../api";
 import Shell from "../components/Shell";
 import { useToast } from "../components/toast";
 import { useAuth } from "../auth/AuthContext";
@@ -31,21 +31,23 @@ export default function Usuarios() {
     }, [q]);
 
     useEffect(() => {
-        api("/admin/especialidades").then(setEspecialidades).catch(() => { });
+        const controller = new AbortController();
+        apiCached("/admin/especialidades", { ttlMs: 300_000, signal: controller.signal })
+            .then(setEspecialidades)
+            .catch(() => { });
+        return () => controller.abort();
     }, []);
 
     useEffect(() => {
-        let activo = true;
-        api(`/admin/usuarios${busqueda ? `?q=${encodeURIComponent(busqueda)}` : ""}`)
-            .then((d) => activo && setLista(d))
+        const controller = new AbortController();
+        api(`/admin/usuarios${busqueda ? `?q=${encodeURIComponent(busqueda)}` : ""}`, { signal: controller.signal })
+            .then(setLista)
             .catch((e) => {
-                if (!activo) return;
+                if (controller.signal.aborted) return;
                 setLista([]);
                 toast.error(e.message);
             });
-        return () => {
-            activo = false;
-        };
+        return () => controller.abort();
     }, [busqueda, intento, toast]);
 
     const recargar = () => { setLista(null); setIntento((n) => n + 1); };
@@ -69,6 +71,7 @@ export default function Usuarios() {
                     email: nuevo.email.trim() || null,
                 },
             });
+            if (nuevo.rol === "MEDICO") invalidarCache("/medicos");
             toast.ok(`Usuario ${nuevo.username.trim().toLowerCase()} creado.`);
             setNuevo(null);
             recargar();

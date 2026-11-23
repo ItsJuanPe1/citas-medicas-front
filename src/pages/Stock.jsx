@@ -15,17 +15,15 @@ export default function Stock() {
     const [guardando, setGuardando] = useState(false);
 
     useEffect(() => {
-        let activo = true;
-        api(`/farmacia/stock?q=${encodeURIComponent(busqueda)}`)
-            .then((d) => activo && setFilas(d))
+        const controller = new AbortController();
+        api(`/farmacia/stock?q=${encodeURIComponent(busqueda)}`, { signal: controller.signal })
+            .then(setFilas)
             .catch((e) => {
-                if (!activo) return;
+                if (controller.signal.aborted) return;
                 setFilas([]);
                 toast.error(e.message);
             });
-        return () => {
-            activo = false;
-        };
+        return () => controller.abort();
     }, [busqueda, intento, toast]);
 
     // Busqueda en vivo

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { api } from "../api";
+import { memo, useEffect, useState } from "react";
+import { api, apiCached } from "../api";
 import Shell from "../components/Shell";
 
 const fmt = new Intl.DateTimeFormat("es-CO", { dateStyle: "short", timeStyle: "medium", hour12: false });
@@ -108,7 +108,7 @@ function cambios(l, cat) {
   return filas;
 }
 
-function Detalle({ l, cat }) {
+const Detalle = memo(function Detalle({ l, cat }) {
   const filas = cambios(l, cat);
   const objeto = `${TABLAS[l.tabla] ?? l.tabla} #${l.idRegistro}`;
   return (
@@ -147,7 +147,7 @@ function Detalle({ l, cat }) {
       </details>
     </>
   );
-}
+});
 
 export default function Auditoria() {
   const [logs, setLogs] = useState(null);
@@ -155,21 +155,19 @@ export default function Auditoria() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let activo = true;
-    api("/admin/auditoria")
-      .then((d) => activo && setLogs(d))
+    const controller = new AbortController();
+    api("/admin/auditoria", { signal: controller.signal })
+      .then(setLogs)
       .catch((e) => {
-        if (!activo) return;
+        if (controller.signal.aborted) return;
         setLogs([]);
         setError(e.message);
       });
     // Si el catalogo falla, igual se ve la auditoria (con ids en vez de nombres)
-    api("/admin/auditoria/catalogos")
-      .then((d) => activo && setCat(d))
+    apiCached("/admin/auditoria/catalogos", { ttlMs: 300_000, signal: controller.signal })
+      .then(setCat)
       .catch(() => { });
-    return () => {
-      activo = false;
-    };
+    return () => controller.abort();
   }, []);
 
   return (
