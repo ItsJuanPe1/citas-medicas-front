@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { api } from "../api";
+import { apiCached, invalidarCache } from "../api";
 import Shell from "../components/Shell";
 
 function SortTh({ campo, sort, onSort, children }) {
@@ -25,16 +25,18 @@ export default function Home() {
   const [sort, setSort] = useState({ key: "apellido", dir: "asc" });
 
   useEffect(() => {
-    let activo = true;
-    api("/medicos")
-      .then((d) => activo && setMedicos(d))
-      .catch((e) => activo && setError(e.message));
-    return () => {
-      activo = false;
-    };
+    const controller = new AbortController();
+    apiCached("/medicos", { ttlMs: 300_000, signal: controller.signal })
+      .then(setMedicos)
+      .catch((e) => {
+        if (controller.signal.aborted) return;
+        setError(e.message);
+      });
+    return () => controller.abort();
   }, [intento]);
 
   function reintentar() {
+    invalidarCache("/medicos");
     setError(null);
     setMedicos(null);
     setIntento((n) => n + 1);
